@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Passaparolla — Türkçe Dil Bilgisi</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;overflow:hidden;background:#080000;font-family:'Outfit',sans-serif;}
+
+/* ── SAHNE ── */
+#app{
+  width:100vw;height:100vh;
+  display:flex;flex-direction:column;align-items:center;
+  position:relative;overflow:hidden;
+}
+/* Sahne zemini: koyu ama kadife */
+.bg-base{
+  position:absolute;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 100% 55% at 50% 100%, #1c0505 0%, #080000 65%),
+    repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(255,255,255,.008) 40px,rgba(255,255,255,.008) 41px);
+}
+/* Perdeler - sol */
+.perde-l{
+  position:absolute;top:0;left:0;height:100%;z-index:2;pointer-events:none;
+  width:19%;
+  background:
+    linear-gradient(to right, #1a0303 0%, #8a1010 30%, #6b0d0d 55%, #3d0808 80%, #1a0303 100%);
+  clip-path:polygon(0 0,100% 0,80% 100%,0 100%);
+}
+.perde-l::after{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,transparent,transparent 18px,rgba(0,0,0,.15) 18px,rgba(0,0,0,.15) 20px);
+}
+/* Perdeler - sağ */
+.perde-r{
+  position:absolute;top:0;right:0;height:100%;z-index:2;pointer-events:none;
+  width:19%;
+  background:
+    linear-gradient(to left, #1a0303 0%, #8a1010 30%, #6b0d0d 55%, #3d0808 80%, #1a0303 100%);
+  clip-path:polygon(0 0,100% 0,100% 100%,20% 100%);
+}
+.perde-r::after{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,transparent,transparent 18px,rgba(0,0,0,.15) 18px,rgba(0,0,0,.15) 20px);
+}
+/* Üst korniş */
+.korniş{
+  position:absolute;top:0;left:0;right:0;height:52px;z-index:3;pointer-events:none;
+  background:linear-gradient(180deg,#3d0808 0%,#6b1010 40%,rgba(40,6,6,0) 100%);
+  border-bottom:1px solid rgba(180,40,40,.25);
+}
+/* Zemin ışığı */
+.zemin-isik{
+  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:60%;height:200px;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 100%,rgba(245,197,24,.09) 0%,transparent 70%);
+}
+/* Spotlight üstten */
+.spot-l,.spot-r{
+  position:absolute;top:0;width:28%;height:70%;z-index:1;pointer-events:none;
+  opacity:.35;
+}
+.spot-l{left:8%;background:radial-gradient(ellipse at 30% 0%,rgba(255,210,80,.12) 0%,transparent 60%);}
+.spot-r{right:8%;background:radial-gradient(ellipse at 70% 0%,rgba(255,210,80,.12) 0%,transparent 60%);}
+
+/* ── EKRANLAR ── */
+#start-screen,#end-screen{
+  position:absolute;inset:0;z-index:40;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+  background:rgba(0,0,0,.78);
+}
+#game-screen{
+  position:relative;z-index:5;width:100%;height:100%;
+  display:none;flex-direction:column;align-items:center;
+}
+
+/* ── LOGO ── */
+.logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(40px,7vw,80px);
+  color:#F5C518;
+  letter-spacing:10px;
+  line-height:1;
+  text-shadow:0 0 60px rgba(245,197,24,.35),0 4px 0 rgba(0,0,0,.7),0 0 120px rgba(245,197,24,.15);
+}
+.logo-alt{
+  font-size:11px;letter-spacing:5px;text-transform:uppercase;
+  color:rgba(255,255,255,.25);margin-top:-4px;font-weight:300;
+}
+.start-desc{
+  font-size:14px;color:rgba(255,255,255,.45);max-width:360px;
+  text-align:center;line-height:1.75;margin-top:8px;font-weight:300;
+}
+.btn-gold{
+  font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:6px;
+  padding:14px 60px;background:#F5C518;color:#0a0000;
+  border:none;border-radius:3px;cursor:pointer;
+  box-shadow:0 0 30px rgba(245,197,24,.2),0 5px 0 #8a6800,inset 0 1px 0 rgba(255,255,255,.3);
+  transition:transform .12s,box-shadow .12s;margin-top:10px;
+}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 0 50px rgba(245,197,24,.35),0 7px 0 #8a6800,inset 0 1px 0 rgba(255,255,255,.3);}
+.btn-gold:active{transform:translateY(2px);box-shadow:0 0 20px rgba(245,197,24,.15),0 3px 0 #8a6800;}
+
+/* ── ÜST BAR ── */
+#top-bar{
+  width:100%;display:flex;align-items:center;justify-content:space-between;
+  padding:11px 26px 0;position:relative;z-index:10;
+}
+.scores{
+  display:flex;gap:6px;align-items:center;
+  background:rgba(0,0,0,.6);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:100px;padding:5px 16px;
+  backdrop-filter:blur(8px);
+}
+.sci{display:flex;align-items:center;gap:5px;}
+.scd{width:7px;height:7px;border-radius:50%;}
+.scd.g{background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,.6);}
+.scd.r{background:#ef4444;box-shadow:0 0 6px rgba(239,68,68,.6);}
+.scd.o{background:#f97316;box-shadow:0 0 6px rgba(249,115,22,.6);}
+.scn{color:#fff;font-size:15px;font-weight:800;min-width:18px;text-align:center;}
+.scs{color:rgba(255,255,255,.12);font-size:10px;margin:0 1px;}
+
+#rb{
+  font-family:'Bebas Neue',sans-serif;font-size:13px;
+  color:rgba(245,197,24,.5);letter-spacing:3px;
+  background:rgba(0,0,0,.5);border:1px solid rgba(245,197,24,.15);
+  border-radius:100px;padding:3px 16px;
+}
+
+/* Timer */
+.tw{position:relative;width:60px;height:60px;}
+.tw svg{position:absolute;top:0;left:0;transform:rotate(-90deg);}
+#tn{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue',sans-serif;font-size:21px;color:#fff;letter-spacing:1px;
+}
+
+/* ── ÇEMBERİ ── */
+#stage{
+  flex:0 0 auto;width:100%;
+  display:flex;align-items:center;justify-content:center;
+  padding-top:4px;
+}
+#csv{width:min(96vw,580px);height:min(43vw,250px);display:block;}
+
+/* Dot stilleri - SVG'de class ile */
+.db{
+  fill:#140606;stroke:rgba(255,255,255,.14);stroke-width:.8;
+  filter:none;transition:fill .25s,stroke .25s;
+}
+.dl{
+  font-family:'Bebas Neue',sans-serif;font-size:12.5px;
+  fill:rgba(255,255,255,.45);
+  text-anchor:middle;dominant-baseline:central;
+  pointer-events:none;transition:fill .25s;
+}
+/* Aktif: altın */
+.da .db{fill:#F5C518;stroke:#d4a00c;stroke-width:1.5;}
+.da .dl{fill:#0a0000;font-size:13px;}
+/* Doğru: yeşil */
+.dc .db{fill:#166534;stroke:#22c55e;stroke-width:1;}
+.dc .dl{fill:#4ade80;}
+/* Yanlış: kırmızı */
+.dw .db{fill:#7f1d1d;stroke:#ef4444;stroke-width:1;}
+.dw .dl{fill:#fca5a5;}
+/* Pas: turuncu */
+.dp .db{fill:#7c2d12;stroke:#f97316;stroke-width:1;}
+.dp .dl{fill:#fdba74;}
+/* Bekleyen (henüz gelinmemiş) */
+.dd .db{fill:#0f0404;stroke:rgba(255,255,255,.08);}
+.dd .dl{fill:rgba(255,255,255,.2);}
+
+/* ── SORU ALANI ── */
+#qa{
+  flex:1;width:min(90vw,640px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:0 24px;
+  position:relative;
+}
+#qlb{
+  display:inline-flex;align-items:center;gap:8px;
+  margin-bottom:14px;
+}
+#qlb-harf{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:36px;line-height:1;
+  color:#F5C518;
+  text-shadow:0 0 20px rgba(245,197,24,.4);
+  letter-spacing:2px;
+}
+#qlb-line{
+  width:1px;height:28px;
+  background:rgba(255,255,255,.12);
+}
+#qlb-text{
+  font-size:10px;letter-spacing:3px;text-transform:uppercase;
+  color:rgba(255,255,255,.2);font-weight:300;
+  text-align:left;line-height:1.4;
+}
+#qh{
+  font-size:clamp(17px,2.6vw,26px);
+  font-weight:600;
+  color:rgba(255,255,255,.88);
+  line-height:1.55;
+}
+/* İlerleme çizgisi */
+#progress-bar{
+  width:min(90vw,640px);height:2px;
+  background:rgba(255,255,255,.06);
+  position:relative;margin-top:6px;border-radius:1px;overflow:hidden;
+}
+#progress-fill{
+  height:100%;background:rgba(245,197,24,.4);
+  border-radius:1px;transition:width .3s ease;
+}
+
+/* ── BUTONLAR ── */
+#ar{
+  width:100%;display:flex;gap:8px;justify-content:center;
+  padding:10px 20px 18px;
+}
+.ab{
+  font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:4px;
+  padding:13px 0;min-width:130px;flex:1;max-width:170px;
+  border:none;border-radius:4px;cursor:pointer;
+  transition:transform .1s,box-shadow .1s,filter .1s;
+  position:relative;overflow:hidden;
+}
+.ab::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.12) 0%,transparent 100%);pointer-events:none;}
+.ab:active{transform:scale(.96);}
+.ab .kh{display:block;font-family:'Outfit',sans-serif;font-size:9px;letter-spacing:1.5px;opacity:.4;margin-top:2px;font-weight:300;}
+.ab.w{background:#dc2626;color:#fff;box-shadow:0 5px 0 #7f1d1d,0 0 20px rgba(220,38,38,.25);}
+.ab.w:hover{transform:translateY(-2px);box-shadow:0 7px 0 #7f1d1d,0 0 30px rgba(220,38,38,.35);}
+.ab.pa{
+  background:rgba(255,255,255,.07);color:rgba(255,255,255,.55);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 5px 0 rgba(0,0,0,.5);
+}
+.ab.pa:hover{transform:translateY(-2px);background:rgba(255,255,255,.13);box-shadow:0 7px 0 rgba(0,0,0,.5);}
+.ab.c{background:#16a34a;color:#fff;box-shadow:0 5px 0 #14532d,0 0 20px rgba(22,163,74,.25);}
+.ab.c:hover{transform:translateY(-2px);box-shadow:0 7px 0 #14532d,0 0 30px rgba(22,163,74,.35);}
+
+/* ── BİTİŞ ── */
+.end-logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(32px,5.5vw,56px);
+  color:#F5C518;letter-spacing:7px;
+  text-shadow:0 0 40px rgba(245,197,24,.3);
+}
+.end-sub{font-size:12px;letter-spacing:4px;color:rgba(255,255,255,.25);text-transform:uppercase;margin-top:-8px;}
+.es{display:flex;gap:32px;margin:6px 0;}
+.esv{font-family:'Bebas Neue',sans-serif;font-size:54px;line-height:1;text-align:center;}
+.esv.g{color:#4ade80;text-shadow:0 0 20px rgba(74,222,128,.3);}
+.esv.r{color:#f87171;text-shadow:0 0 20px rgba(248,113,113,.3);}
+.esv.o{color:#fb923c;text-shadow:0 0 20px rgba(251,146,60,.3);}
+.esl{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-top:3px;text-align:center;}
+.sum-wrap{
+  width:min(90vw,420px);max-height:210px;overflow-y:auto;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:8px;
+}
+.si{display:flex;align-items:center;gap:10px;padding:7px 14px;border-bottom:1px solid rgba(255,255,255,.05);}
+.si:last-child{border-bottom:none;}
+.si-l{font-family:'Bebas Neue',sans-serif;font-size:15px;color:rgba(245,197,24,.6);min-width:18px;text-align:center;}
+.si-b{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;}
+.si-b.g{background:rgba(74,222,128,.15);color:#4ade80;}
+.si-b.r{background:rgba(248,113,113,.15);color:#f87171;}
+.si-b.o{background:rgba(251,146,60,.15);color:#fb923c;}
+.si-n{font-size:12px;color:rgba(255,255,255,.6);flex:1;font-weight:400;line-height:1.3;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="bg-base"></div>
+  <div class="perde-l"></div><div class="perde-r"></div>
+  <div class="korniş"></div>
+  <div class="zemin-isik"></div>
+  <div class="spot-l"></div><div class="spot-r"></div>
+
+  <!-- BAŞLANGIÇ -->
+  <div id="start-screen">
+    <div class="logo">Passaparolla</div>
+    <div class="logo-alt">Türkçe Dil Bilgisi Kavramları</div>
+    <div class="start-desc">
+      Her harften 1 soru — 4 dakika.<br>
+      Sadece ipucu görünür, cevabı söyle.<br>
+      Her turda farklı sorular gelir.
+    </div>
+    <button class="btn-gold" id="btn-start">OYUNU BAŞLAT</button>
+  </div>
+
+  <!-- OYUN -->
+  <div id="game-screen">
+    <div id="top-bar">
+      <div class="scores">
+        <div class="sci"><div class="scd g"></div><span class="scn" id="sc-c">0</span></div>
+        <span class="scs">·</span>
+        <div class="sci"><div class="scd r"></div><span class="scn" id="sc-w">0</span></div>
+        <span class="scs">·</span>
+        <div class="sci"><div class="scd o"></div><span class="scn" id="sc-p">0</span></div>
+      </div>
+      <div id="rb">TUR 1</div>
+      <div class="tw">
+        <svg viewBox="0 0 60 60" width="60" height="60">
+          <circle cx="30" cy="30" r="25" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="4"/>
+          <circle id="ring" cx="30" cy="30" r="25" fill="none" stroke="#22c55e"
+            stroke-width="4" stroke-linecap="round"
+            stroke-dasharray="157.08" stroke-dashoffset="0"/>
+        </svg>
+        <div id="tn">240</div>
+      </div>
+    </div>
+
+    <div id="stage">
+      <svg id="csv" viewBox="0 0 580 240" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+
+    <div id="qa">
+      <div id="qlb">
+        <div id="qlb-harf">A</div>
+        <div id="qlb-line"></div>
+        <div id="qlb-text">Aktif Harf<br><span style="color:rgba(255,255,255,.12);font-size:9px;" id="q-num-txt">1 / 29</span></div>
+      </div>
+      <div id="qh">—</div>
+    </div>
+
+    <div id="progress-bar"><div id="progress-fill" style="width:0%"></div></div>
+
+    <div id="ar">
+      <button class="ab w" id="btn-wrong">YANLIŞ<span class="kh">← ok tuşu</span></button>
+      <button class="ab pa" id="btn-pass">PAS<span class="kh">↓ ok tuşu</span></button>
+      <button class="ab c" id="btn-correct">DOĞRU<span class="kh">→ ok tuşu</span></button>
+    </div>
+  </div>
+
+  <!-- BİTİŞ -->
+  <div id="end-screen" style="display:none;">
+    <div class="end-logo" id="et">TUR TAMAMLANDI!</div>
+    <div class="end-sub" id="end-sub">Sonuçlar</div>
+    <div class="es">
+      <div><div class="esv g" id="fc">0</div><div class="esl">Doğru</div></div>
+      <div><div class="esv r" id="fw">0</div><div class="esl">Yanlış</div></div>
+      <div><div class="esv o" id="fp">0</div><div class="esl">Pas</div></div>
+    </div>
+    <div class="sum-wrap" id="sl"></div>
+    <button class="btn-gold" id="btn-restart">SONRAKİ TUR →</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// TÜM HARFLER İÇİN SORULAR
+// C, I, J, L, O, Ş, U → PDF'de yoktu, eklendi ✓
+// ══════════════════════════════════════════════
+const ALL = {
+  A:[
+    "Bir şeyi olduğundan çok büyük veya küçük gösterme sanatı",
+    "Bilgi vermek için kullanılan nesnel anlatım biçimi",
+    "Sözcüğün ilgi bağıyla başka kavram yerine kullanılması",
+    "Başkasına ait sözün tırnak içinde değiştirilmeden aktarılması",
+    "Eylemin hangi amaçla yapıldığını bildiren cümle",
+    "Yazarın metnin tamamına sindirdiği temel iletisi",
+    "Metnin konusunu en iyi yansıtan, sıkça tekrarlanan kelime",
+    "Cümlenin anlamca veya yapıca eksik ya da çelişkili olması",
+    "Yaşanmış olayların üzerinden zaman geçtikten sonra anlatıldığı tür",
+    "İki çizgi veya virgül arasında bir ögeyi açıklayan söz",
+    "Atalardan gelen, kalıplaşmış, anonim, öğüt veren özlü söz"
+  ],
+  B:[
+    "Eş görevli sözcükleri birbirine bağlayan sözcük",
+    "Yargıların 've, ama, fakat' gibi bağlaçlarla birbirine bağlandığı cümle",
+    "Metnin konusunu en kısa ve etkili biçimde özetleyen söz",
+    "Adın miktarını kesin olmayan biçimde belirten sıfat türü",
+    "İsmin yerini belirsiz biçimde tutan zamir türü",
+    "Tamlayanı ilgi eki, tamlananı iyelik eki almış tamlama türü",
+    "'-i' eki almış, neyi ve kimi sorularına cevap veren cümle ögesi",
+    "Tamlayanı yalın isim, tamlananı iyelik eki almış tamlama türü",
+    "Yalın hâlde 'ne' sorusuna cevap veren cümle ögesi",
+    "Zayıf olanın güçlü olana benzetilmesi sanatı",
+    "Varlık ve durumların kelimelerle resmedilmesi; sıfat kullanımı yoğundur",
+    "Tanınmış kişinin hayatının başkası tarafından nesnel anlatılması",
+    "Kalın ünlüden sonra kalın, ince ünlüden sonra ince ünlü gelme kuralı"
+  ],
+  // ✓ C — PDF'de yoktu, eklendi
+  C:[
+    "Bir sözcüğün farklı bağlamlarda birden fazla anlam taşıması durumu",
+    "Cümlenin anlamını tamamlayan, yükleme 'kime, neye' sorularıyla bulunan öge",
+    "Yazım kurallarına aykırı biçimde bir araya getirilen sözcüklerin oluşturduğu yanlış yapı"
+  ],
+  Ç:[
+    "Bir sözcüğün gerçek anlamı yanında mecaz ve yan anlam kazanması",
+    "Birbirine zıt kavramların bir arada kullanılması sanatı",
+    "Çekim eklerinin sözcüğe eklenerek anlam zenginliği kazandırması"
+  ],
+  D:[
+    "Yazarın bir konuyu kanıtlamadan samimi ve özgün dille ele aldığı düşünce yazısı",
+    "Bir milletin tarihini ve kahramanlıklarını anlatan uzun manzum anlatı türü",
+    "Yüklemi sonda olmayan, sözdizimi ters olan cümle",
+    "En az iki sözcükten oluşan, çoğu mecaz anlamlı, kalıplaşmış söz öbeği",
+    "Resmi kuruluşlara istek veya şikâyet sunmak için yazılan bildirme yazısı",
+    "Başkasının sözünün değiştirilmeden tırnak işaretleri içinde aktarılması",
+    "Başkasının sözünün özetlenerek ve yorumlanarak aktarılması",
+    "Öznel duyguların yoğun biçimde ifade edildiği cümle türü"
+  ],
+  E:[
+    "Tek başına anlamsız, başka sözcüklerle birleşince anlam kazanan sözcük türü",
+    "Bir varlığı olağanüstü ögelerle açıklayan anonim halk anlatısı",
+    "İsim soylu sözcüklere gelerek onları yüklem yapan dilbilgisi unsuru",
+    "Yüklemi söylenmeyip üç noktayla biten eksik cümle",
+    "Bir eserin güçlü ve zayıf yönlerini değerlendiren yazı türü",
+    "Emir kipiyle çekimlenmiş, bir iş yapılmasını emreden cümle",
+    "Yazılışları farklı fakat anlamları aynı veya çok yakın sözcükler",
+    "Yazılışları aynı fakat anlamları birbirinden farklı sözcükler"
+  ],
+  F:[
+    "Kahramanları genellikle hayvan olan, sonunda ders veren kısa anlatı türü",
+    "İş, oluş veya durum bildiren, kip ve kişi eki alabilen sözcük türü",
+    "Yüklemi çekimli bir fiil olan cümle türü",
+    "Gazete ve dergilerde güncel konuları samimi dille ele alan kısa yazı türü"
+  ],
+  G:[
+    "Nesne alabilen, geçişli çatıda olan fiil türü",
+    "Nesne alamayan, nesnesiz tam yargı bildiren fiil türü",
+    "Bir yargının tüm zamanlar ve durumlar için geçerli olma özelliği",
+    "Sözcüğün sözlükte ilk sırada verilen temel anlamı",
+    "Gezilip görülen yerlerin betimleme ve gözlemle aktarıldığı yazı türü",
+    "Yüklemin kişi ekinden anlaşılan ve açıkça yazılmayan özne türü",
+    "Grafik, tablo, karikatür ve infografik gibi görsellerin yorumlanması",
+    "Yaşananları günü gününe tarih atılarak kaydedilen yazı türü"
+  ],
+  H:[
+    "5N1K kuralıyla nesnel biçimde olay aktaran bildirme yazısı türü",
+    "Geçmişte yapılmamış ya da söylenmemiş bir şey için pişmanlık bildiren cümle",
+    "Olayları kişi, zaman ve mekân ögeleriyle anlatan kısa kurmaca yazı türü"
+  ],
+  // ✓ I — PDF'de yoktu, eklendi
+  I:[
+    "Sözcüklerin birden fazla anlam kazanması; mecaz, yan ve terim anlam gibi türleri olan anlam genişlemesi",
+    "Kelimelerin alfabetik, tematik ya da kavramsal olarak bir araya getirildiği başvuru eseri",
+    "İki sözcüğün bir araya gelerek yeni ve bütünleşik bir anlam oluşturduğu sözcük birliği"
+  ],
+  İ:[
+    "Bir cümlenin başka bir cümle içinde doğrudan anlatım yoluyla yer aldığı yapı",
+    "Anlamı ve etkiyi pekiştirmek için iki sözcüğün yan yana kullanılması",
+    "İnsan dışındaki varlıkların konuşturulduğu edebi sanat",
+    "Varlıkları, nesneleri ve soyut kavramları karşılayan sözcük türü",
+    "Yüklemi ek fiil almış isim ya da isim soylu sözcük olan cümle türü",
+    "İki veya daha fazla ismin anlamca ve yapıca birbirine bağlandığı söz dizisi",
+    "Bu, şu, o gibi işaret sıfatlarının genel adı",
+    "Adın yerini işaret yoluyla tutan zamir türü"
+  ],
+  // ✓ J — PDF'de yoktu, eklendi
+  J:[
+    "Belirli bir meslek, grup ya da topluluğa özgü, dışarıdakiler tarafından anlaşılması güç söz varlığı",
+    "Bir dilin bölgeden bölgeye değişen, kendine özgü söyleyiş ve sözcük özelliklerine sahip kolu",
+    "Kelimelerin köken, anlam ve biçim bakımından incelenmesini konu alan dil bilimi dalı"
+  ],
+  K:[
+    "İki veya daha fazla şeyin benzerlik ya da farklılık açısından değerlendirildiği cümle",
+    "Zıt iki yargının bir arada verildiği, karşıt anlam içeren cümle türü",
+    "Özel isimlere getirilen çekim eklerini sözcükten ayırmak için kullanılan işaret",
+    "Fiilin zaman veya istek, dilek, şart, emir gibi tutum bildiren çekim biçimi",
+    "İnsan dışındaki varlıklara insana özgü özellikler verme sanatı",
+    "Ben, sen, o, biz, siz, onlar gibi kişi adlarının yerini tutan zamir türü",
+    "Bir eylemin gerçekleşmesinin başka bir koşula bağlandığı cümle",
+    "Yüklemi cümlenin sonunda yer alan, kurallı sözdizimli cümle",
+    "Düz ünlüden sonra düz, yuvarlak ünlüden sonra dar yuvarlak ünlü gelme kuralı"
+  ],
+  // ✓ L — PDF'de yoktu, eklendi
+  L:[
+    "Sözcüklerin anlamlarını, kökenlerini ve kullanımlarını alfabetik sırayla açıklayan başvuru kitabı",
+    "Bir dilin ses, sözcük ve dilbilgisi bakımından birbirinden ayrılan coğrafi kollarından biri",
+    "Bir kişiye doğum adından ayrı olarak takılan, genellikle bir özelliğini ya da durumunu yansıtan ad"
+  ],
+  M:[
+    "Bilimsel verilere dayalı, açık ve nesnel bir şekilde yazılan düşünce yazısı",
+    "Olağanüstü olay ve hayalî kahramanlarla kurulan, anonim halk anlatısı",
+    "Sözcüğün gerçek anlamından tamamen uzaklaşarak yeni bir anlam kazanması",
+    "Yazılı eserlerin biçim, içerik ve amaçlarına göre sınıflandırılması"
+  ],
+  N:[
+    "Eylemin hangi nedenle gerçekleştiğini bildiren, neden-sonuç ilişkili cümle",
+    "Öznenin yaptığı işten doğrudan etkilenen cümle ögesi",
+    "Kişisel görüş ve yorum içermeyen, kanıtlanabilir yargı içeren anlatım türü",
+    "Adın nasıl, ne renk, ne biçimde olduğunu belirten sıfat türü"
+  ],
+  // ✓ O — PDF'de yoktu, eklendi
+  O:[
+    "Kişinin kendi hayatını, yaşadıklarını ve düşüncelerini birinci tekil kişi ağzıyla anlattığı yazı türü",
+    "Gerçek yaşamda var olmayan, doğa üstü güç ve özelliklere sahip olan; masallarda ve destanlarda sık kullanılan sıfat",
+    "Bir toplumun geneli tarafından kullanılan, bölge farklılıklarının ötesine geçen standart yazı ve konuşma dili"
+  ],
+  Ö:[
+    "Doğrudan söylenmemiş fakat verilen bilgilerden mantık yoluyla çıkarılan anlam",
+    "Düşüncenin somutlaştırılması amacıyla somut durumlardan örnek verilmesi",
+    "Olayın kişi, zaman ve mekânla birlikte kronolojik akış içinde anlatıldığı anlatım biçimi",
+    "Cümlede yüklemin bildirdiği işi yapan ya da durumu yaşayan temel cümle ögesi",
+    "Kişiden kişiye değişen, kanıtlanamayan görüş ve beğeni bildiren yargı türü"
+  ],
+  P:[
+    "Bir düşüncenin ya da duygunun belirli bir yönünü işleyen, kendi içinde bütünlüklü cümleler topluluğu",
+    "İlk hecesi alındıktan sonra m, p, r, s harflerinden biri eklenerek yapılan güçlendirme sıfatı"
+  ],
+  R:[
+    "İlgi çeken bir konu üzerine araştırmaya dayalı, fotoğraflı haber yazısı türü",
+    "Birden çok karakteri, geniş zaman ve mekân kurgusunu içeren uzun düz yazı kurmaca türü"
+  ],
+  S:[
+    "Adın sayısını, sırasını ya da bölünüşünü bildiren sıfat türü",
+    "Sözcüğe ek getirildiğinde sözcükteki bir sesin düşmesi olayı",
+    "Sözcüğe ek getirildiğinde iki ses arasına yeni bir ses girmesi olayı",
+    "İsmi niteleyen ya da belirten sözcük türü",
+    "Fiilden türeyerek sıfat görevi üstlenen fiilimsi türü",
+    "Sıfat ile ismin anlamca bağlandığı tamlama türü",
+    "Birden fazla yargının virgül ya da noktalı virgülle yan yana getirildiği cümle",
+    "Beş duyuyla algılanabilen, somut kavramların anlamı",
+    "Soyut bir kavramı somut bir varlığa benzeterek anlatma",
+    "Soru zamiri, sıfatı ya da 'mı/mi/mu/mü' edatıyla kurulan cümle türü",
+    "Beş duyuyla algılanamayan, zihinsel kavramların anlamı",
+    "Yazarın okuyucuyla karşılıklı konuşuyormuş gibi yazdığı samimi düşünce yazısı",
+    "Anlatımı etkili ve güçlü kılan edebi dilsel araçların genel adı",
+    "Sözcüklerin cümle içindeki göreve göre sınıflandırıldığı dilbilgisi konusu",
+    "Edilgen çatılı cümlede yapılan işten etkilenen fakat gerçek özne olmayan öge",
+    "İpuçlarından hareketle akıl yürüterek doğru sonuca ulaşma becerisi"
+  ],
+  // ✓ Ş — PDF'de yoktu, eklendi
+  Ş:[
+    "Duygu, düşünce ve hayallerin ahenkli, imgeli ve yoğun biçimde dile getirildiği yazın türü",
+    "Bir dilin bölgeden bölgeye değişen söyleyiş, tonlama ve vurgu özelliği",
+    "Cümlede özne görevi üstlenen kişi zamirlerinin başka adı; ben, sen, o, biz, siz, onlar"
+  ],
+  T:[
+    "Düşünceyi güçlendirmek amacıyla tanınmış kişilerin sözlerinden alıntı yapma yöntemi",
+    "Bir kavramı, nesneyi ya da olguyu temel özellikleriyle açıklayan anlatım yöntemi",
+    "Bir görüşü savunmak ve karşı görüşü çürütmek için ikna edici anlatım biçimi",
+    "Bilim, sanat, spor ya da meslek alanlarına özgü özel anlamlı sözcük",
+    "Birbirine zıt kavramların yan yana getirilerek etkiyi artırdığı edebi sanat",
+    "Olayı sahnede oyuncular aracılığıyla canlandırmak için yazılmış metin türü"
+  ],
+  // ✓ U — PDF'de yoktu, eklendi
+  U:[
+    "Türkçede ünlü ve ünsüz seslerin belirli kurallara göre art arda gelmesini sağlayan ses uyumu",
+    "Ünsüzle biten bir sözcüğün ünlüyle başlayan bir sözcükle okunuşta birbirine bağlanması olayı",
+    "Sözcüğün gerçek anlamından çok uzaklaşmış, kalıplaşmış mecaz kullanımı"
+  ],
+  Ü:[
+    "Sert ünsüzle biten bir sözcüğe yumuşak ünsüzle başlayan ek geldiğinde ekin sertleşmesi",
+    "Sert ünsüzle (p, ç, t, k) biten sözcüğe ünlüyle başlayan ek gelince sertin yumuşaması"
+  ],
+  V:[
+    "Gerçekleşmemiş ya da olmayan bir durumu gerçekleşmiş gibi gösteren cümle türü",
+    "Sıralı sözcükleri, ara sözleri ve uzun cümlelerdeki anlam karışıklıklarını önlemek için kullanılan noktalama işareti"
+  ],
+  Y:[
+    "Memnuniyetsizlik, şikâyet ya da sızlanma bildiren cümle türü",
+    "Sözcüğün gerçek anlamından kopmadan, benzerlik temelinde kazandığı ikincil anlam",
+    "Doğadaki seslerin taklit edilmesiyle oluşan yansımalı sözcükler",
+    "Ana düşünceyi destekleyen, açıklayan ve genişleten yardımcı fikirler",
+    "Cümlede yargıyı bildiren, kip ve kişi ekleriyle çekimlenen temel cümle ögesi"
+  ],
+  Z:[
+    "İsmin yerini geçici olarak tutan, zamana ve bağlama göre değişen sözcük türü",
+    "Fiilin, sıfatın ya da başka bir zarfın anlamını belirten sözcük türü",
+    "Yükleme ne zaman, nasıl, ne kadar ve niçin sorularıyla bulunabilen cümle ögesi",
+    "Anlamca birbirinin tam karşıtı olan sözcükler",
+    "En az üç isimden oluşan, birden fazla tamlayan ya da tamlanan içeren tamlama türü"
+  ]
+};
+
+const LETTERS=['A','B','C','Ç','D','E','F','G','H','I','İ','J','K','L','M','N','O','Ö','P','R','S','Ş','T','U','Ü','V','Y','Z'];
+const TT=240, N=LETTERS.length;
+const CX=290, CY=115, RX=262, RY=103;
+
+let round=1, queue=[], usedIdx={}, idx=0, results=[], tLeft=TT, tmr=null, running=false;
+let cC=0,cW=0,cP=0;
+
+function pickQueue(){
+  return LETTERS.map(l=>{
+    const pool=ALL[l]||["Bu harf için soru hazırlanıyor"];
+    const used=usedIdx[l]||[];
+    let avail=pool.map((_,j)=>j).filter(j=>!used.includes(j));
+    if(!avail.length){usedIdx[l]=[];avail=pool.map((_,j)=>j);}
+    const chosen=avail[Math.floor(Math.random()*avail.length)];
+    usedIdx[l]=[...(usedIdx[l]||[]),chosen];
+    return{l,h:pool[chosen]};
+  });
+}
+
+function buildCircle(){
+  const svg=document.getElementById('csv');
+  svg.innerHTML='';
+  // Bağlantı çemberi (ince daire)
+  const ellipse=document.createElementNS('http://www.w3.org/2000/svg','ellipse');
+  ellipse.setAttribute('cx',CX);ellipse.setAttribute('cy',CY);
+  ellipse.setAttribute('rx',RX);ellipse.setAttribute('ry',RY);
+  ellipse.setAttribute('fill','none');
+  ellipse.setAttribute('stroke','rgba(255,255,255,0.05)');
+  ellipse.setAttribute('stroke-width','1');
+  ellipse.setAttribute('stroke-dasharray','3 5');
+  svg.appendChild(ellipse);
+
+  for(let i=0;i<N;i++){
+    const a=(2*Math.PI*i/N)-Math.PI/2;
+    const x=(CX+RX*Math.cos(a)).toFixed(1);
+    const y=(CY+RY*Math.sin(a)).toFixed(1);
+    const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.id='g'+i;g.setAttribute('class','dd');
+    const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx',x);c.setAttribute('cy',y);c.setAttribute('r','14');c.setAttribute('class','db');
+    const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x',x);t.setAttribute('y',y);t.setAttribute('class','dl');
+    t.textContent=LETTERS[i];
+    g.appendChild(c);g.appendChild(t);svg.appendChild(g);
+  }
+}
+
+function setDot(i,cls){
+  const g=document.getElementById('g'+i);if(g)g.setAttribute('class',cls);
+}
+
+function showQ(i){
+  if(i>=N){endGame();return;}
+  document.getElementById('qlb-harf').textContent=queue[i].l;
+  document.getElementById('qh').textContent=queue[i].h;
+  document.getElementById('q-num-txt').textContent=(i+1)+' / '+N;
+  document.getElementById('progress-fill').style.width=(i/N*100).toFixed(1)+'%';
+  setDot(i,'da');
+}
+
+function updTimer(){
+  const c=2*Math.PI*25;const f=tLeft/TT;
+  document.getElementById('ring').setAttribute('stroke-dashoffset',(c*(1-f)).toFixed(2));
+  document.getElementById('ring').setAttribute('stroke',f>.4?'#22c55e':f>.15?'#fbbf24':'#ef4444');
+  document.getElementById('tn').textContent=tLeft;
+}
+
+function startRound(){
+  queue=pickQueue();results=new Array(N).fill(null);
+  idx=0;tLeft=TT;cC=0;cW=0;cP=0;running=true;
+  ['sc-c','sc-w','sc-p'].forEach(id=>document.getElementById(id).textContent='0');
+  document.getElementById('rb').textContent='TUR '+round;
+  document.getElementById('start-screen').style.display='none';
+  document.getElementById('end-screen').style.display='none';
+  document.getElementById('game-screen').style.display='flex';
+  document.getElementById('progress-fill').style.width='0%';
+  buildCircle();updTimer();showQ(0);
+  clearInterval(tmr);
+  tmr=setInterval(()=>{if(!running)return;tLeft--;updTimer();if(tLeft<=0)endGame();},1000);
+}
+
+function mark(s){
+  if(!running)return;
+  results[idx]=s;
+  setDot(idx,s==='correct'?'dc':s==='wrong'?'dw':'dp');
+  if(s==='correct'){cC++;document.getElementById('sc-c').textContent=cC;}
+  else if(s==='wrong'){cW++;document.getElementById('sc-w').textContent=cW;}
+  else{cP++;document.getElementById('sc-p').textContent=cP;}
+  idx++;
+  if(idx>=N){endGame();return;}
+  showQ(idx);
+}
+
+function endGame(){
+  running=false;clearInterval(tmr);
+  document.getElementById('progress-fill').style.width='100%';
+  document.getElementById('game-screen').style.display='none';
+  document.getElementById('end-screen').style.display='flex';
+  document.getElementById('et').textContent=tLeft<=0?'SÜRE DOLDU!':'TUR TAMAMLANDI!';
+  document.getElementById('end-sub').textContent='Tur '+round+' Sonuçları';
+  document.getElementById('fc').textContent=cC;
+  document.getElementById('fw').textContent=cW;
+  document.getElementById('fp').textContent=cP;
+  const list=document.getElementById('sl');list.innerHTML='';
+  for(let i=0;i<Math.min(idx,N);i++){
+    const r=results[i]||'pass';
+    const d=document.createElement('div');d.className='si';
+    const lbl=document.createElement('div');lbl.className='si-l';lbl.textContent=queue[i].l;
+    const b=document.createElement('div');
+    b.className='si-b '+(r==='correct'?'g':r==='wrong'?'r':'o');
+    b.textContent=r==='correct'?'D':r==='wrong'?'Y':'P';
+    const n=document.createElement('div');n.className='si-n';
+    const h=queue[i].h;n.textContent=h.length>50?h.substring(0,50)+'…':h;
+    d.appendChild(lbl);d.appendChild(b);d.appendChild(n);list.appendChild(d);
+  }
+  if(idx<N){
+    const d=document.createElement('div');d.className='si';
+    d.style.cssText='color:rgba(255,255,255,.2);font-size:12px;padding:8px 14px;';
+    d.textContent='…ve '+(N-idx)+' soru cevaplanmadı';
+    list.appendChild(d);
+  }
+}
+
+document.getElementById('btn-start').addEventListener('click',startRound);
+document.getElementById('btn-restart').addEventListener('click',()=>{round++;startRound();});
+document.getElementById('btn-correct').addEventListener('click',()=>mark('correct'));
+document.getElementById('btn-wrong').addEventListener('click',()=>mark('wrong'));
+document.getElementById('btn-pass').addEventListener('click',()=>mark('pass'));
+document.addEventListener('keydown',e=>{
+  if(!running)return;
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();mark('correct');}
+  else if(e.key==='ArrowLeft'){e.preventDefault();mark('wrong');}
+  else if(e.key==='ArrowDown'){e.preventDefault();mark('pass');}
+});
+</script>
+</body>
+</html>
